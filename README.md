@@ -27,7 +27,7 @@ const ShelvesProductList = () => {
   
   return ( 
     <ul> {
-      products.filter(item =>  item.isShelves).map(item => 
+      products.filter(item => item.isShelves).map(item => 
        <li key={item.id}>
         <img src={item.pic} />
         <p>{item.productName}</p>
@@ -41,7 +41,7 @@ const ShelvesProductList = () => {
 不难发现这个组件一共做了三件事情，获取数据、过滤数据、渲染数据，那我们该如何拆分呢？
 
 ```
-1、 获取所有商品数据自定义hook
+1、获取所有商品数据自定义hook
 const useProducts = () => {
   const [products, setProducts] = useState([])
   useEffect(() => {
@@ -55,19 +55,19 @@ const useProducts = () => {
   return { products }
 }
 
-2、 过滤符合条件的商品数据
+2、过滤符合条件的商品数据
 const getShelvesProducts = (products) => {
   return products.filter(item =>  item.isShelves)
 }
 
-3、 只获取符合条件的商品数据自定义hook
+3、只获取符合条件的商品数据自定义hook
 const useShelvesProducts = () => {
   const { products } = useProducts()
   const shelvesProducts = useMemo(() => getShelvesProducts(products), [products])
   return { shelvesProducts }
 }
 
-4、 单个数据的渲染
+4、单个数据的渲染
 const ProductItem = ({product}) => {
   return (
     <li>
@@ -102,6 +102,79 @@ const ShelvesProductList = () => {
 
 #### 4.接口隔离原则（ISP）
 > 接口隔离原则主张最小化系统组件之间的依赖关系，使它们的耦合度降低，从而提高可重用性。
+
+下面让我们来看这个例子
+```
+1、定义一个书本的接口对象
+interface IBookItem {
+  id: number,
+  name: string,
+  price: string,
+  thumb: string
+}
+
+2、定一个书本的数据接口
+interface IBooks {
+  data: IBookItem[]
+}
+
+3、渲染书本的封面图
+interface BookThumbProps {
+  book: IBookItem
+}
+const BookThumb = ({ book }: BookThumbProps) => {
+  return <img src={book.thumb} alt="alt" />
+}
+
+4、渲染书本数据
+const Books = ({data}: IBooks) => {
+  return (
+    <ul>
+      {data.map(item => <BookThumb key={item.id} book={item} />)}
+    </ul>
+  )
+}
+```
+上面例子中的BookThumb组件，我们不难发现它有一个问题，就是把整个书本的对象数据当作props传进去，实际上这个组件只用到book对象中的封面图thumb属性。当我们需要需求有变动，需要展示别的类型的缩略图，但是它的属性不叫thumb，下面我们来改造一下。
+
+```
+1、定义一个普通书本的接口对象
+interface IOrdinarybookItem {
+  id: number,
+  name: string,
+  thumb: string
+}
+
+2、教科书类型的书包接口对象
+interface ITextbookItem {
+  id: number,
+  name: string,
+  textThumb: string
+}
+
+3、定一个书本的数据接口
+interface IBooks {
+  data: IOrdinarybookItem[] | ITextbookItem[]
+}
+
+4、改造一下，这里只传递显示缩略图的属性（并非整个书本对象）
+interface BookThumbProps {
+  thumbUrl: string
+}
+
+const BookThumb = ({ thumbUrl }: BookThumbProps) => {
+  return <img src={thumbUrl} alt="alt" />
+}
+
+5、渲染书本数据
+const Books = ({data}: IBooks) => {
+  return (
+    <ul>
+      {data.map(item => <BookThumb key={item.id} thumbUrl={'thumb' in item ? item.thumb : item.textThumb} />)}
+    </ul>
+  )
+}
+```
 
 #### 5.依赖倒置原则（DIP）
 > 程序要依赖于抽象接口，不要依赖于具体实现。简单的说就是要求对抽象进行编程，不要对实现进行编程，这样就降低了客户与实现模块间的耦合。

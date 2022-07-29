@@ -1,7 +1,7 @@
 # SOLID原则
 
 ## 什么是SOLID
-> SOLID 是 Robert C. Martin（世界级编程大师）的前五个面向对象设计原则的首字母缩写词。这些原则的目的是：让你的代码、架构更具可读性、可维护性、灵活性。
+> SOLID 是 Robert C. Martin（罗伯特·C·马丁-世界级编程大师）的前五个面向对象设计原则的首字母缩写词。这些原则的目的是：让你的代码、架构更具可读性、可维护性、灵活性。
 
 ## SOLID的五大原则
 #### 1.单一职责原则(Single Responsibility Principle)
@@ -105,8 +105,8 @@ const ShelvesProductList = () => {
 
 下面让我们来看这个例子
 ```
-1、定义一个书本的接口对象
-interface IBookItem {
+1、定义一个普通书本的接口对象
+interface IOrdinarybookItem {
   id: number,
   name: string,
   price: string,
@@ -115,12 +115,12 @@ interface IBookItem {
 
 2、定一个书本的数据接口
 interface IBooks {
-  data: IBookItem[]
+  data: IOrdinarybookItem[]
 }
 
 3、渲染书本的封面图
 interface BookThumbProps {
-  book: IBookItem
+  book: IOrdinarybookItem
 }
 const BookThumb = ({ book }: BookThumbProps) => {
   return <img src={book.thumb} alt="alt" />
@@ -177,4 +177,89 @@ const Books = ({data}: IBooks) => {
 ```
 
 #### 5.依赖倒置原则（DIP）
-> 程序要依赖于抽象接口，不要依赖于具体实现。简单的说就是要求对抽象进行编程，不要对实现进行编程，这样就降低了客户与实现模块间的耦合。
+> 依赖倒置原则指出“要依赖于抽象，不要依赖于具体”。换句话说，一个组件不应该直接依赖于另一个组件，而是它们都应该依赖于一些共同的抽象。这里“组件”是指应用程序的任何部分，可以是 React 组件、函数、模块或第三方库。
+
+看下面的一个例子
+```
+import postUserInfo from '@/api/postUserInfo'
+const UserForm = () => {
+  const [form] = Form.useForm()
+  const onFinish = useCallback((data) => {
+    postUserInfo(data).then(res => {
+      console.log(res)
+    })
+  },[])
+  return (
+    <Modal
+      title='更新用户信息'
+      visible={true}
+      okButtonProps={{
+        htmlType: 'submit',
+        onClick: () => {
+          form.submit()
+        },
+      }}
+    >
+      <Form form={form} onFinish={onFinish}>
+        <Form.Item
+          label="用户名"
+          name={'username'}
+        >
+          <Input placeholder="请输入用户名" />
+        </Form.Item>
+      </Form>
+    </Modal>
+  )
+}
+```
+这段代码主要是一个更新用户名称的弹窗组件，组件直接依赖了更新用户名称的api接口，因此它们之间存在紧密耦合。这种依赖关系就会导致一个组件的更改会影响其他组件。依赖倒置原则就提倡打破这种耦合。对于这种我们可以直接把接口抽离出来，提交数据的逻辑可以通过onFinish提交的回调抽象出来，由父组件负责提供该逻辑的具体实现。
+
+```
+1、在子组件中提交把表单数据传递给父组件做提交逻辑处理
+import postUserInfo from '@/api/postUserInfo'
+interface UserFormProps {
+  onSubmit: (data) => void
+}
+const UserForm = ({ onSubmit }: UserFormProps) => {
+  const [form] = Form.useForm()
+  const onFinish = useCallback((data) => {
+    onSubmit(data)
+  },[])
+  return (
+    <Modal
+      title='更新用户信息'
+      visible={true}
+      okButtonProps={{
+        htmlType: 'submit',
+        onClick: () => {
+          form.submit()
+        },
+      }}
+    >
+      <Form form={form} onFinish={onFinish}>
+        <Form.Item
+          label="用户名"
+          name={'username'}
+        >
+          <Input placeholder="请输入用户名" />
+        </Form.Item>
+      </Form>
+    </Modal>
+  )
+}
+
+2、在父组件中处理接口逻辑
+import postUserInfo from '@/api/postUserInfo'
+const ModalUserForm = () => {
+  const handleSubmit = useCallback((data) => {
+    postUserInfo(data).then(res => {
+      console.log(res)
+    })
+  },[])
+  return (
+    <UserForm onSubmit={handleSubmit} />
+  )
+}
+```
+ModalUserForm组件充当api和UserForm之间的粘合剂，而它们本身保持完全独立。这样就可以对这两个组件进行单独的修改和维护，而不必担心修改会影响其他组件。
+依赖倒置原则旨在最小化应用程序不同组件之间的耦合。最小化是所有SOLID原则中反复出现的关键词——从最小化单个组件的职责范围到最小化它们之间的依赖关系等等。

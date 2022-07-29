@@ -96,6 +96,70 @@ const ShelvesProductList = () => {
 > 模块应该对扩展开放，而对修改关闭
 > 开放封闭原则指出“一个软件实体（类、模块、函数）应该对扩展开放，对修改关闭”。开放封闭原则主张以一种允许在不更改源代码的情况下扩展组件的方式来构造组件。
 
+下面来看一个场景，有一个可以在不同页面上使用的 Header 组件，根据所在页面的不同，Header 组件的 UI 应该有略微的不同
+```
+const Header = () => {
+  const { pathname } = useRouter()
+  return (
+    <header>
+      <Logo />
+      <Actions>
+        {pathname === '/dashboard' && <Link to="/create/user">create user</Link>}
+        {pathname === '/' && <Link to="/dashboard">dashboard</Link>}
+      </Actions>
+    </header>
+  )
+}
+
+const HomePage = () => (
+  <>
+    <Header />
+    <OtherHomeStuff />
+  </>
+)
+
+const DashboardPage = () => (
+  <>
+    <Header />
+    <OtherDashboardStuff />
+  </>
+)
+```
+
+不难看出该组件的逻辑是根据所在页面的不同，呈现指向不同页面组件的链接。我们可以思考一下，如果需要将这个Header组件添加到更多的页面中会发生什么呢？每次创建新页面时，都需要引用 Header组件，并修改其内部实现。这种方式使得 Header 组件与使用它的上下文紧密耦合，并且违背了开放封闭原则。
+
+为了解决这个问题，我们可以使用组件组合。Header组件不需要关心它将在内部渲染什么，相反，它可以将此责任委托给将使用 children 属性的组件：
+```
+const Header = ({ children }) => (
+  <header>
+    <Logo />
+    <Actions>
+      {children}
+    </Actions>
+  </header>
+)
+
+const HomePage = () => (
+  <>
+    <Header>
+      <Link to="/dashboard">Go to dashboard</Link>
+    </Header>
+    <OtherHomeStuff />
+  </>
+)
+
+const DashboardPage = () => (
+  <>
+    <Header>
+      <Link to="/events/new">Create event</Link>
+    </Header>
+    <OtherDashboardStuff />
+  </>
+)
+```
+使用这种方法，我们完全删除了 Header 组件内部的变量逻辑。现在可以使用组合将想要的任何内容放在Header中，而无需修改组件本身。
+
+遵循开放封闭原则，可以减少组件之间的耦合，使它们更具可扩展性和可重用性。
 
 #### 3.里氏替换原则（Liskov Substitution Principle）
 > 里氏替换原则可以理解为对象之间的一种关系，子类型对象应该可以替换为超类型对象。
@@ -135,7 +199,9 @@ const Books = ({data}: IBooks) => {
   )
 }
 ```
-上面例子中的BookThumb组件，我们不难发现它有一个问题，就是把整个书本的对象数据当作props传进去，实际上这个组件只用到book对象中的封面图thumb属性。当我们需要需求有变动，需要展示别的类型的缩略图，但是它的属性不叫thumb，下面我们来改造一下。
+上面例子中的BookThumb组件，我们不难发现它有一个问题，就是把整个书本的对象数据当作props传进去，实际上这个组件只用到book对象中的封面图thumb属性。
+
+当我们需要需求有变动，需要展示别的类型的缩略图，但是它的属性不叫thumb，下面我们来改造一下。
 
 ```
 1、定义一个普通书本的接口对象
@@ -212,7 +278,9 @@ const UserForm = () => {
   )
 }
 ```
-这段代码主要是一个更新用户名称的弹窗组件，组件直接依赖了更新用户名称的api接口，因此它们之间存在紧密耦合。这种依赖关系就会导致一个组件的更改会影响其他组件。依赖倒置原则就提倡打破这种耦合。对于这种我们可以直接把接口抽离出来，提交数据的逻辑可以通过onFinish提交的回调抽象出来，由父组件负责提供该逻辑的具体实现。
+这段代码主要是一个更新用户名称的弹窗组件，组件直接依赖了更新用户名称的api接口，因此它们之间存在紧密耦合，这种依赖关系就会导致一个组件的更改会影响其他组件。
+
+依赖倒置原则就提倡打破这种耦合，对于这种我们可以直接把接口抽离出来，提交数据的逻辑可以通过onFinish提交的回调抽象出来，由父组件负责提供该逻辑的具体实现。
 
 ```
 1、在子组件中提交把表单数据传递给父组件做提交逻辑处理
@@ -262,4 +330,5 @@ const ModalUserForm = () => {
 }
 ```
 ModalUserForm组件充当api和UserForm之间的粘合剂，而它们本身保持完全独立。这样就可以对这两个组件进行单独的修改和维护，而不必担心修改会影响其他组件。
-依赖倒置原则旨在最小化应用程序不同组件之间的耦合。最小化是所有SOLID原则中反复出现的关键词——从最小化单个组件的职责范围到最小化它们之间的依赖关系等等。
+
+依赖倒置原则旨在最小化应用程序不同组件之间的耦合，最小化是所有SOLID原则中反复出现的关键词——从最小化单个组件的职责范围到最小化它们之间的依赖关系等等。

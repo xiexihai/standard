@@ -8,7 +8,7 @@
 
 ## BEM规则写法
 
-.block （块）
+.block（块）
 
 .block__element (元素)
 
@@ -28,6 +28,19 @@
     <button class="cart__button cart__button--disable">cart footer 按钮（禁止状态）</button>
   </div>
 </div>
+
+对于less/sass可以这样写
+
+.card {
+ &__head {}
+ &__title {}
+ &__body {}
+ &__foot {}
+ &__button {
+  &--disabled {
+  }
+ }
+}
 ```
 #### 通用型模块命名
 + wrapper 最外层容器
@@ -36,14 +49,14 @@
 + footer 底部
 + nav/menu 导航了
 + aside 侧边栏
-...
++ ...
 
 #### 功能型模块命名
 + search
 + login
 + title
 + tab
-...
++ ...
 
 > 连词之间用建议用中横线（-）连接
 
@@ -55,19 +68,8 @@
 .el-input__wrapper  元素（外围包装）
 .el-input__inner 元素（input框）
 .el-input__clear 元素（清除元素）
-
 .el-input—large 修饰符（input大小）
 .el-input—small 修饰符（input大小）
-
-对于less/sass可以这样写
-
-.el-input {
- &__wrapper{}
- &__inner{}
- &__close{}
- &—large{}
- &—small{}
-}
 ```
 #### 有赞 vant ui
 ```
@@ -78,19 +80,4 @@
 .van-popover__action—disabled  元素（按钮）— 禁止点击状态（修饰符）
 .van-popover__action-icon  元素（按钮图标）
 .van-popover__action-text 元素（按钮文字）
-
-html结构
-<div class=“van-popover”>
-  <div class=“van-popover__arrow”></div>
-  <div class=“van-popover__content”>
-    <div class=“van-popover__action”>
-       <div class=“van-popover__action-icon”></div>
-       <div class=“van-popover__action-text”>选项1</div>
-    </div>
-    <div class=“van-popover__action van-popover__action—disabled”>
-       <div class=“van-popover__action-icon”></div>
-       <div class=“van-popover__action-text”>选项2</div>
-    </div>
-  </div>
-</div>
 ```

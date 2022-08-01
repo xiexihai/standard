@@ -139,7 +139,7 @@ const Header = ({ children }) => (
 const HomePage = () => (
   <>
     <Header>
-      <Link to="/dashboard">Go to dashboard</Link>
+      <Link to="/create/user">create user</Link>
     </Header>
     <OtherHomeStuff />
   </>
@@ -148,7 +148,7 @@ const HomePage = () => (
 const DashboardPage = () => (
   <>
     <Header>
-      <Link to="/events/new">Create event</Link>
+      <Link to="/dashboard">dashboard</Link>
     </Header>
     <OtherDashboardStuff />
   </>
